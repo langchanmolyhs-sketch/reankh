@@ -1,379 +1,304 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
-import React, { useState } from 'react';
-import { 
-  Calculator, 
-  Zap, 
-  MoveRight, 
-  Activity, 
-  BookOpen, 
-  Info,
-  RefreshCcw,
-  LayoutDashboard
-} from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
-
-// SciInput component for scientific notation input (a × 10^n)
-const SciInput = ({ label, base, exp, onBaseChange, onExpChange, unit, colorClass = "blue" }: {
-  label: string;
-  base: string;
-  exp: string;
-  onBaseChange: (val: string) => void;
-  onExpChange: (val: string) => void;
-  unit: string;
-  colorClass?: string;
-}) => (
-  <div className="flex flex-col mb-6">
-    <label className="text-sm font-bold text-gray-600 mb-2">{label}</label>
-    <div className="flex items-center gap-3">
-      <div className="relative flex-1">
-        <input
-          type="number"
-          value={base}
-          onChange={(e) => onBaseChange(e.target.value)}
-          className={`w-full p-2.5 bg-white border border-gray-200 rounded-lg shadow-sm focus:ring-2 focus:ring-${colorClass}-500 focus:border-transparent outline-none transition-all`}
-          placeholder="មេគុណ (a)"
-        />
-      </div>
-      <span className="text-gray-400 font-bold italic">× 10</span>
-      <div className="relative w-24">
-        <input
-          type="number"
-          value={exp}
-          onChange={(e) => onExpChange(e.target.value)}
-          className={`w-full p-2.5 bg-white border border-gray-200 rounded-lg shadow-sm focus:ring-2 focus:ring-${colorClass}-500 focus:border-transparent outline-none transition-all`}
-          placeholder="ស្វ័យគុណ (n)"
-        />
-      </div>
-      <div className="min-w-[40px] font-bold text-gray-500 bg-gray-100 px-3 py-2 rounded-lg text-center">
-        {unit}
-      </div>
-    </div>
-  </div>
-);
-
-// Coulomb's Law Tab
-const CoulombTab = () => {
-  const [q1Base, setQ1Base] = useState('2');
-  const [q1Exp, setQ1Exp] = useState('-6');
-  const [q2Base, setQ2Base] = useState('3');
-  const [q2Exp, setQ2Exp] = useState('-6');
-  const [rBase, setRBase] = useState('0.1');
-  const [rExp, setRExp] = useState('0');
-
-  const calculateF = () => {
-    const k = 9e9;
-    const q1 = parseFloat(q1Base) * Math.pow(10, parseFloat(q1Exp));
-    const q2 = parseFloat(q2Base) * Math.pow(10, parseFloat(q2Exp));
-    const r = parseFloat(rBase) * Math.pow(10, parseFloat(rExp));
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>កម្មវិធីជំនួយការគណនារូបវិទ្យា - លោកគ្រូ ឡាង ចាន់ម៉ូលី</title>
     
-    if (r === 0 || isNaN(q1) || isNaN(q2) || isNaN(r)) return '---';
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&family=Moul&display=swap" rel="stylesheet">
     
-    const f = (k * Math.abs(q1 * q2)) / Math.pow(r, 2);
-    return f.toExponential(3);
-  };
+    <!-- Scripts: React, Babel, Tailwind, Lucide -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide-react@latest/dist/umd/lucide-react.js"></script>
 
-  return (
-    <motion.div 
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="p-4 md:p-8"
-    >
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-3 bg-blue-100 rounded-xl">
-          <Zap className="text-blue-600" size={24} />
-        </div>
-        <div>
-          <h3 className="text-xl font-bold text-gray-800">ច្បាប់គូឡុំ (Coulomb's Law)</h3>
-          <p className="text-sm text-gray-500">គណនាកម្លាំងអន្តរកម្មរវាងពីរបន្ទុកចំណុច</p>
-        </div>
-      </div>
+    <style>
+        body {
+            font-family: 'Kantumruy Pro', sans-serif;
+            background-color: #f8fafc;
+        }
+        .font-moul {
+            font-family: 'Moul', serif;
+        }
+        /* សម្រួល input ឱ្យស្អាត */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+    </style>
 
-      <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 mb-8 flex items-start gap-3">
-        <Info className="text-blue-400 mt-0.5" size={18} />
-        <div className="text-sm text-blue-800">
-          <span className="font-bold">រូបមន្ត៖</span> F = k × |q₁q₂| / r² (ដែល k = 9 × 10⁹ N·m²/C²)
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-        <div className="space-y-2">
-          <SciInput label="បន្ទុកអគ្គិសនីទី១ (q₁)" base={q1Base} exp={q1Exp} onBaseChange={setQ1Base} onExpChange={setQ1Exp} unit="C" colorClass="blue" />
-          <SciInput label="បន្ទុកអគ្គិសនីទី២ (q₂)" base={q2Base} exp={q2Exp} onBaseChange={setQ2Base} onExpChange={setQ2Exp} unit="C" colorClass="blue" />
-          <SciInput label="ចម្ងាយរវាងបន្ទុកទាំងពីរ (r)" base={rBase} exp={rExp} onBaseChange={setRBase} onExpChange={setRExp} unit="m" colorClass="blue" />
-        </div>
-        
-        <div className="flex flex-col h-full justify-between">
-          <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl p-8 text-white shadow-xl flex flex-col items-center justify-center text-center">
-            <div className="text-blue-100 text-sm font-medium mb-4 uppercase tracking-wider">កម្លាំងអគ្គិសនី (F)</div>
-            <motion.div 
-              key={calculateF()}
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="text-4xl md:text-5xl font-black mb-2"
-            >
-              {calculateF()}
-            </motion.div>
-            <div className="text-2xl font-bold text-blue-200">ញូតុន (N)</div>
-          </div>
-          
-          <div className="mt-6 flex gap-4">
-            <button 
-              onClick={() => {
-                setQ1Base('2'); setQ1Exp('-6');
-                setQ2Base('3'); setQ2Exp('-6');
-                setRBase('0.1'); setRExp('0');
-              }}
-              className="flex-1 py-3 px-4 rounded-xl border border-gray-200 text-gray-600 font-bold hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors"
-            >
-              <RefreshCcw size={18} /> កំណត់ឡើងវិញ
-            </button>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-};
+    <script>
+        // កំណត់ការកំណត់សម្រាប់ Tailwind
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Kantumruy Pro', 'sans-serif'],
+                        moul: ['Moul', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+    <div id="root"></div>
 
-// Electric Field Tab
-const EFieldTab = () => {
-  const [qBase, setQBase] = useState('2');
-  const [qExp, setQExp] = useState('-6');
-  const [rBase, setRBase] = useState('0.1');
-  const [rExp, setRExp] = useState('0');
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { 
+            Calculator, Zap, MoveRight, Activity, 
+            BookOpen, Info, RefreshCcw, LayoutDashboard 
+        } = LucideReact;
 
-  const calculateE = () => {
-    const k = 9e9;
-    const q = parseFloat(qBase) * Math.pow(10, parseFloat(qExp));
-    const r = parseFloat(rBase) * Math.pow(10, parseFloat(rExp));
-    
-    if (r === 0 || isNaN(q) || isNaN(r)) return '---';
-    
-    const e = (k * Math.abs(q)) / Math.pow(r, 2);
-    return e.toExponential(3);
-  };
-
-  return (
-    <motion.div 
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="p-4 md:p-8"
-    >
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-3 bg-purple-100 rounded-xl">
-          <Activity className="text-purple-600" size={24} />
-        </div>
-        <div>
-          <h3 className="text-xl font-bold text-gray-800">ដែនអគ្គិសនី (Electric Field)</h3>
-          <p className="text-sm text-gray-500">គណនាខ្លឹមភាពដែនអគ្គិសនីត្រង់ចំណុចមួយ</p>
-        </div>
-      </div>
-
-      <div className="bg-purple-50/50 p-4 rounded-xl border border-purple-100 mb-8 flex items-start gap-3">
-        <Info className="text-purple-400 mt-0.5" size={18} />
-        <div className="text-sm text-purple-800">
-          <span className="font-bold">រូបមន្ត៖</span> E = k × |Q| / r²
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-        <div className="space-y-2">
-          <SciInput label="បន្ទុកបង្កដែន (Q)" base={qBase} exp={qExp} onBaseChange={setQBase} onExpChange={setQExp} unit="C" colorClass="purple" />
-          <SciInput label="ចម្ងាយពីបន្ទុកទៅចំណុចគណនា (r)" base={rBase} exp={rExp} onBaseChange={setRBase} onExpChange={setRExp} unit="m" colorClass="purple" />
-        </div>
-        
-        <div className="flex flex-col h-full">
-          <div className="bg-gradient-to-br from-purple-600 to-pink-700 rounded-3xl p-8 text-white shadow-xl flex flex-col items-center justify-center text-center">
-            <div className="text-purple-100 text-sm font-medium mb-4 uppercase tracking-wider">ខ្លឹមភាពដែនអគ្គិសនី (E)</div>
-            <motion.div 
-              key={calculateE()}
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="text-4xl md:text-5xl font-black mb-2"
-            >
-              {calculateE()}
-            </motion.div>
-            <div className="text-2xl font-bold text-purple-200">N/C</div>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-};
-
-// Motion of Particles Tab
-const MotionTab = () => {
-  const [qBase, setQBase] = useState('2');
-  const [qExp, setQExp] = useState('-6');
-  const [eBase, setEBase] = useState('5');
-  const [eExp, setEExp] = useState('3');
-  const [mBase, setMBase] = useState('4');
-  const [mExp, setMExp] = useState('-3');
-
-  const calculateA = () => {
-    const q = parseFloat(qBase) * Math.pow(10, parseFloat(qExp));
-    const e = parseFloat(eBase) * Math.pow(10, parseFloat(eExp));
-    const m = parseFloat(mBase) * Math.pow(10, parseFloat(mExp));
-    
-    if (m <= 0 || isNaN(q) || isNaN(e) || isNaN(m)) return '---';
-    
-    const a = (Math.abs(q) * e) / m;
-    return a.toExponential(3);
-  };
-
-  return (
-    <motion.div 
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="p-4 md:p-8"
-    >
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-3 bg-emerald-100 rounded-xl">
-          <MoveRight className="text-emerald-600" size={24} />
-        </div>
-        <div>
-          <h3 className="text-xl font-bold text-gray-800">ចលនាភាគល្អិតអគ្គិសនី (Particle Motion)</h3>
-          <p className="text-sm text-gray-500">គណនាសំទុះរបស់ភាគល្អិតក្នុងដែនអគ្គិសនីឯកសណ្ឋាន</p>
-        </div>
-      </div>
-
-      <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 mb-8 flex items-start gap-3">
-        <Info className="text-emerald-400 mt-0.5" size={18} />
-        <div className="text-sm text-emerald-800">
-          <span className="font-bold">រូបមន្ត៖</span> a = |q|E / m
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-        <div className="space-y-2">
-          <SciInput label="បន្ទុកភាគល្អិត (q)" base={qBase} exp={qExp} onBaseChange={setQBase} onExpChange={setQExp} unit="C" colorClass="emerald" />
-          <SciInput label="ខ្លឹមភាពដែនអគ្គិសនី (E)" base={eBase} exp={eExp} onBaseChange={setEBase} onExpChange={setEExp} unit="N/C" colorClass="emerald" />
-          <SciInput label="ម៉ាសភាគល្អិត (m)" base={mBase} exp={mExp} onBaseChange={setMBase} onExpChange={setMExp} unit="kg" colorClass="emerald" />
-        </div>
-        
-        <div className="flex flex-col h-full">
-          <div className="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-3xl p-8 text-white shadow-xl flex flex-col items-center justify-center text-center">
-            <div className="text-emerald-100 text-sm font-medium mb-4 uppercase tracking-wider">សំទុះរបស់ភាគល្អិត (a)</div>
-            <motion.div 
-              key={calculateA()}
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="text-4xl md:text-5xl font-black mb-2"
-            >
-              {calculateA()}
-            </motion.div>
-            <div className="text-2xl font-bold text-emerald-200">m/s²</div>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-};
-
-export default function App() {
-  const [activeTab, setActiveTab] = useState('coulomb');
-
-  const tabs = [
-    { id: 'coulomb', label: 'ច្បាប់គូឡុំ', icon: Zap, color: 'blue' },
-    { id: 'efield', label: 'ដែនអគ្គិសនី', icon: Activity, color: 'purple' },
-    { id: 'motion', label: 'ចលនាភាគល្អិត', icon: MoveRight, color: 'emerald' },
-  ];
-
-  return (
-    <div className="min-h-screen bg-[#f8fafc] flex flex-col">
-      {/* Top Header Section */}
-      <header className="bg-slate-900 text-white pt-12 pb-24 relative overflow-hidden">
-        {/* Animated Background Element */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl -mr-20 -mt-20" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-2xl -ml-20 -mb-20" />
-        
-        <div className="max-w-5xl mx-auto px-4 relative z-10">
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col md:flex-row md:items-center justify-between gap-6"
-          >
-            <div className="flex items-center gap-5">
-              <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-500/40">
-                <Calculator size={34} className="text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl md:text-4xl font-bold font-moul leading-tight">កម្មវិធីជំនួយការគណនារូបវិទ្យា</h1>
-                <div className="flex items-center gap-2 text-blue-300 mt-2 font-medium">
-                  <LayoutDashboard size={16} />
-                  <span>ថ្នាក់ទី១១ ជំពូកទី៤ មេរៀនទី១៖ បន្ទុក និងដែនអគ្គិសនី</span>
+        // --- សមាសភាគសម្រាប់បញ្ចូលលេខ (Scientific Input) ---
+        const SciInput = ({ label, base, exp, onBaseChange, onExpChange, unit, colorClass = "blue" }) => (
+            <div className="flex flex-col mb-6">
+                <label className="text-sm font-bold text-gray-600 mb-2">{label}</label>
+                <div className="flex items-center gap-3">
+                    <div className="relative flex-1">
+                        <input
+                            type="number"
+                            value={base}
+                            onChange={(e) => onBaseChange(e.target.value)}
+                            className={`w-full p-2.5 bg-white border border-gray-200 rounded-lg shadow-sm focus:ring-2 focus:ring-${colorClass}-500 outline-none transition-all`}
+                            placeholder="a"
+                        />
+                    </div>
+                    <span className="text-gray-400 font-bold italic">× 10</span>
+                    <div className="relative w-24">
+                        <input
+                            type="number"
+                            value={exp}
+                            onChange={(e) => onExpChange(e.target.value)}
+                            className={`w-full p-2.5 bg-white border border-gray-200 rounded-lg shadow-sm focus:ring-2 focus:ring-${colorClass}-500 outline-none transition-all`}
+                            placeholder="n"
+                        />
+                    </div>
+                    <div className="min-w-[40px] font-bold text-gray-500 bg-gray-100 px-3 py-2 rounded-lg text-center">
+                        {unit}
+                    </div>
                 </div>
-              </div>
             </div>
-            
-            <div className="hidden md:flex flex-col items-end border-l border-slate-700 pl-8">
-              <span className="text-slate-400 text-xs uppercase tracking-[0.2em] mb-1 font-bold">ផលិតដោយគ្រូបង្រៀន</span>
-              <span className="text-xl font-bold text-white">លោកគ្រូ ឡាង ចាន់ម៉ូលី</span>
-            </div>
-          </motion.div>
-        </div>
-      </header>
+        );
 
-      {/* Main Content Area */}
-      <main className="max-w-5xl mx-auto w-full px-4 -mt-12 mb-12 relative z-20">
-        <div className="bg-white rounded-[2rem] shadow-2xl shadow-slate-200 overflow-hidden border border-slate-100">
-          {/* Navigation Bar */}
-          <nav className="flex flex-wrap p-2 bg-slate-50/50 border-b border-slate-100">
-            {tabs.map((tab) => {
-              const isActive = activeTab === tab.id;
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-3 px-6 py-4 rounded-2xl font-bold transition-all flex-1 md:flex-none justify-center whitespace-nowrap ${
-                    isActive 
-                      ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200' 
-                      : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100/50'
-                  }`}
-                >
-                  <Icon size={20} className={isActive ? `text-${tab.color}-600` : ''} />
-                  {tab.label}
-                </button>
-              );
-            })}
-          </nav>
+        // --- ផ្នែកច្បាប់គូឡុំ ---
+        const CoulombTab = () => {
+            const [q1Base, setQ1Base] = useState('2');
+            const [q1Exp, setQ1Exp] = useState('-6');
+            const [q2Base, setQ2Base] = useState('3');
+            const [q2Exp, setQ2Exp] = useState('-6');
+            const [rBase, setRBase] = useState('0.1');
+            const [rExp, setRExp] = useState('0');
 
-          {/* Active Tab Content */}
-          <div className="min-h-[400px]">
-            <AnimatePresence mode="wait">
-              {activeTab === 'coulomb' && <CoulombTab key="coulomb" />}
-              {activeTab === 'efield' && <EFieldTab key="efield" />}
-              {activeTab === 'motion' && <MotionTab key="motion" />}
-            </AnimatePresence>
-          </div>
+            const calculateF = () => {
+                const k = 9e9;
+                const q1 = parseFloat(q1Base) * Math.pow(10, parseFloat(q1Exp));
+                const q2 = parseFloat(q2Base) * Math.pow(10, parseFloat(q2Exp));
+                const r = parseFloat(rBase) * Math.pow(10, parseFloat(rExp));
+                if (r === 0 || isNaN(q1) || isNaN(q2) || isNaN(r)) return '---';
+                const f = (k * Math.abs(q1 * q2)) / Math.pow(r, 2);
+                return f.toExponential(3);
+            };
 
-          {/* Footer Info Box */}
-          <footer className="bg-slate-50 border-t border-gray-100 px-8 py-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <BookOpen size={18} className="text-slate-400" />
-                <span className="text-sm text-slate-500 font-medium">
-                  សម្រួលដល់ការសិក្សាស្រាវជ្រាវ និងការបង្រៀនរូបវិទ្យា
-                </span>
-              </div>
-              <div className="flex items-center gap-2 py-1.5 px-4 bg-white rounded-full border border-slate-200 shadow-sm">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                <span className="text-xs font-bold text-slate-700 tracking-wide">កំណែ v1.0.0</span>
-              </div>
-            </div>
-          </footer>
-        </div>
-      </main>
-      
-      {/* Signature Section (Mobile Only) */}
-      <div className="md:hidden text-center pb-8 px-4">
-        <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">រៀបចំដោយ</p>
-        <p className="text-slate-700 font-bold">លោកគ្រូ ឡាង ចាន់ម៉ូលី</p>
-      </div>
-    </div>
-  );
-}
+            return (
+                <div className="p-6 md:p-8 animate-in fade-in duration-500">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="p-3 bg-blue-100 rounded-xl text-blue-600"><Zap size={24} /></div>
+                        <div>
+                            <h3 className="text-xl font-bold text-gray-800">ច្បាប់គូឡុំ (Coulomb's Law)</h3>
+                            <p className="text-sm text-gray-500">គណនាកម្លាំងអន្តរកម្មរវាងពីរបន្ទុកចំណុច</p>
+                        </div>
+                    </div>
+                    <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 mb-8 flex items-start gap-3">
+                        <Info className="text-blue-400 mt-0.5" size={18} />
+                        <div className="text-sm text-blue-800"><strong>រូបមន្ត៖</strong> F = k × |q₁q₂| / r² (k = 9 × 10⁹)</div>
+                    </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div>
+                            <SciInput label="បន្ទុកអគ្គិសនីទី១ (q₁)" base={q1Base} exp={q1Exp} onBaseChange={setQ1Base} onExpChange={setQ1Exp} unit="C" />
+                            <SciInput label="បន្ទុកអគ្គិសនីទី២ (q₂)" base={q2Base} exp={q2Exp} onBaseChange={setQ2Base} onExpChange={setQ2Exp} unit="C" />
+                            <SciInput label="ចម្ងាយរវាងបន្ទុក (r)" base={rBase} exp={rExp} onBaseChange={setRBase} onExpChange={setRExp} unit="m" />
+                        </div>
+                        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl p-8 text-white shadow-xl text-center flex flex-col justify-center">
+                            <div className="text-blue-100 text-sm mb-4 uppercase">កម្លាំងអគ្គិសនី (F)</div>
+                            <div className="text-4xl md:text-5xl font-black mb-2">{calculateF()}</div>
+                            <div className="text-2xl font-bold text-blue-200">ញូតុន (N)</div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- ផ្នែកដែនអគ្គិសនី ---
+        const EFieldTab = () => {
+            const [qBase, setQBase] = useState('2');
+            const [qExp, setQExp] = useState('-6');
+            const [rBase, setRBase] = useState('0.1');
+            const [rExp, setRExp] = useState('0');
+
+            const calculateE = () => {
+                const k = 9e9;
+                const q = parseFloat(qBase) * Math.pow(10, parseFloat(qExp));
+                const r = parseFloat(rBase) * Math.pow(10, parseFloat(rExp));
+                if (r === 0 || isNaN(q) || isNaN(r)) return '---';
+                const e = (k * Math.abs(q)) / Math.pow(r, 2);
+                return e.toExponential(3);
+            };
+
+            return (
+                <div className="p-6 md:p-8">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="p-3 bg-purple-100 rounded-xl text-purple-600"><Activity size={24} /></div>
+                        <div>
+                            <h3 className="text-xl font-bold text-gray-800">ដែនអគ្គិសនី (Electric Field)</h3>
+                            <p className="text-sm text-gray-500">គណនាខ្លឹមភាពដែនអគ្គិសនីត្រង់ចំណុចមួយ</p>
+                        </div>
+                    </div>
+                    <div className="bg-purple-50 p-4 rounded-xl border border-purple-100 mb-8 flex items-start gap-3">
+                        <Info className="text-purple-400 mt-0.5" size={18} />
+                        <div className="text-sm text-purple-800"><strong>រូបមន្ត៖</strong> E = k × |Q| / r²</div>
+                    </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div>
+                            <SciInput label="បន្ទុកបង្កដែន (Q)" base={qBase} exp={qExp} onBaseChange={setQBase} onExpChange={setQExp} unit="C" colorClass="purple" />
+                            <SciInput label="ចម្ងាយ (r)" base={rBase} exp={rExp} onBaseChange={setRBase} onExpChange={setRExp} unit="m" colorClass="purple" />
+                        </div>
+                        <div className="bg-gradient-to-br from-purple-600 to-pink-700 rounded-3xl p-8 text-white shadow-xl text-center flex flex-col justify-center">
+                            <div className="text-purple-100 text-sm mb-4 uppercase">ខ្លឹមភាពដែន (E)</div>
+                            <div className="text-4xl md:text-5xl font-black mb-2">{calculateE()}</div>
+                            <div className="text-2xl font-bold text-purple-200">N/C</div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- ផ្នែកចលនាភាគល្អិត ---
+        const MotionTab = () => {
+            const [qBase, setQBase] = useState('2'); const [qExp, setQExp] = useState('-6');
+            const [eBase, setEBase] = useState('5'); const [eExp, setEExp] = useState('3');
+            const [mBase, setMBase] = useState('4'); const [mExp, setMExp] = useState('-3');
+
+            const calculateA = () => {
+                const q = parseFloat(qBase) * Math.pow(10, parseFloat(qExp));
+                const e = parseFloat(eBase) * Math.pow(10, parseFloat(eExp));
+                const m = parseFloat(mBase) * Math.pow(10, parseFloat(mExp));
+                if (m <= 0 || isNaN(q) || isNaN(e) || isNaN(m)) return '---';
+                const a = (Math.abs(q) * e) / m;
+                return a.toExponential(3);
+            };
+
+            return (
+                <div className="p-6 md:p-8">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="p-3 bg-emerald-100 rounded-xl text-emerald-600"><MoveRight size={24} /></div>
+                        <div>
+                            <h3 className="text-xl font-bold text-gray-800">ចលនាភាគល្អិតអគ្គិសនី</h3>
+                            <p className="text-sm text-gray-500">គណនាសំទុះរបស់ភាគល្អិតក្នុងដែនអគ្គិសនី</p>
+                        </div>
+                    </div>
+                    <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100 mb-8 flex items-start gap-3">
+                        <Info className="text-emerald-400 mt-0.5" size={18} />
+                        <div className="text-sm text-emerald-800"><strong>រូបមន្ត៖</strong> a = |q|E / m</div>
+                    </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div>
+                            <SciInput label="បន្ទុក (q)" base={qBase} exp={qExp} onBaseChange={setQBase} onExpChange={setQExp} unit="C" colorClass="emerald" />
+                            <SciInput label="ដែនអគ្គិសនី (E)" base={eBase} exp={eExp} onBaseChange={setEBase} onExpChange={setEExp} unit="N/C" colorClass="emerald" />
+                            <SciInput label="ម៉ាស (m)" base={mBase} exp={mExp} onBaseChange={setMBase} onExpChange={setMExp} unit="kg" colorClass="emerald" />
+                        </div>
+                        <div className="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-3xl p-8 text-white shadow-xl text-center flex flex-col justify-center">
+                            <div className="text-emerald-100 text-sm mb-4 uppercase">សំទុះ (a)</div>
+                            <div className="text-4xl md:text-5xl font-black mb-2">{calculateA()}</div>
+                            <div className="text-2xl font-bold text-emerald-200">m/s²</div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- កម្មវិធីគោល ---
+        const App = () => {
+            const [activeTab, setActiveTab] = useState('coulomb');
+
+            const tabs = [
+                { id: 'coulomb', label: 'ច្បាប់គូឡុំ', icon: Zap, color: 'blue' },
+                { id: 'efield', label: 'ដែនអគ្គិសនី', icon: Activity, color: 'purple' },
+                { id: 'motion', label: 'ចលនាភាគល្អិត', icon: MoveRight, color: 'emerald' },
+            ];
+
+            return (
+                <div className="min-h-screen flex flex-col">
+                    <header className="bg-slate-900 text-white pt-10 pb-20 relative overflow-hidden text-center md:text-left">
+                        <div className="max-w-5xl mx-auto px-4 relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                            <div className="flex items-center gap-5">
+                                <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-xl">
+                                    <Calculator size={34} />
+                                </div>
+                                <div>
+                                    <h1 className="text-2xl md:text-3xl font-bold font-moul leading-tight">កម្មវិធីជំនួយការគណនារូបវិទ្យា</h1>
+                                    <p className="text-blue-300 mt-1 flex items-center justify-center md:justify-start gap-2">
+                                        <LayoutDashboard size={14} /> ថ្នាក់ទី១១ ជំពូកទី៤ មេរៀនទី១
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="border-t md:border-t-0 md:border-l border-slate-700 pt-4 md:pt-0 md:pl-8 text-right hidden md:block">
+                                <p className="text-slate-400 text-xs uppercase tracking-widest mb-1">រៀបចំដោយ</p>
+                                <p className="text-xl font-bold">លោកគ្រូ ឡាង ចាន់ម៉ូលី</p>
+                            </div>
+                        </div>
+                    </header>
+
+                    <main className="max-w-5xl mx-auto w-full px-4 -mt-10 mb-12 flex-grow">
+                        <div className="bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-slate-100">
+                            <nav className="flex flex-wrap p-2 bg-slate-50 border-b">
+                                {tabs.map((tab) => {
+                                    const Icon = tab.icon;
+                                    return (
+                                        <button
+                                            key={tab.id}
+                                            onClick={() => setActiveTab(tab.id)}
+                                            className={`flex items-center gap-2 px-6 py-4 rounded-2xl font-bold transition-all flex-1 justify-center ${
+                                                activeTab === tab.id ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200' : 'text-slate-500 hover:bg-slate-100'
+                                            }`}
+                                        >
+                                            <Icon size={20} className={activeTab === tab.id ? `text-${tab.color}-600` : ''} />
+                                            {tab.label}
+                                        </button>
+                                    );
+                                })}
+                            </nav>
+
+                            <div className="min-h-[400px]">
+                                {activeTab === 'coulomb' && <CoulombTab />}
+                                {activeTab === 'efield' && <EFieldTab />}
+                                {activeTab === 'motion' && <MotionTab />}
+                            </div>
+
+                            <footer className="bg-slate-50 border-t px-8 py-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                                <div className="flex items-center gap-2 text-sm text-slate-500">
+                                    <BookOpen size={18} /> ជំនួយដល់ការបង្រៀន និងរៀនរូបវិទ្យា
+                                </div>
+                                <div className="py-1 px-4 bg-white rounded-full border text-xs font-bold text-slate-700">កំណែ v1.0.0</div>
+                            </footer>
+                        </div>
+                        <div className="md:hidden text-center mt-6 text-slate-500 pb-10">
+                            <p className="text-xs uppercase tracking-widest mb-1">រៀបចំដោយ</p>
+                            <p className="font-bold">លោកគ្រូ ឡាង ចាន់ម៉ូលី</p>
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
